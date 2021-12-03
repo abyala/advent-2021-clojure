@@ -2,6 +2,7 @@
 
 * [Problem statement](https://adventofcode.com/2021/day/1)
 * [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day01.clj)
+* [Additional solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day01-windowed.clj)
 
 ---
 
@@ -121,3 +122,32 @@ string and the `identity` function, so the transformation does nothing. For part
 ```
 
 There we go, all clean. On to day 2!
+
+---
+
+## Refactoring Once More
+
+A coworker of mine correctly observed that for part 2, we don't need to sum the values at all. If the first four
+values of the sequence are `(a b c d)`, then `(< (+ a b c) (+ b c d))` is equivalent to `(< a d)`. As a result,
+all we need to do is determine how many numbers apart we need to compare values. For part 1, we compare each
+adjacent pair, and for part 2 we compare numbers that are 3 spaces apart.
+
+So let's make this happen with a few small revisions to the `solve` function. Instead of taking in a mapping function, 
+we'll instead take in the `window-size` we need; part 1 has a window size of two for the adjacent values, and part 2
+has a window size of four (one more than the triple).  The `solve` function parses the measurements, creates 
+partitions of the correct size, and then calls everyone's favorite function `juxt`. The `juxt` function applies a
+number of functions to an input, returning a vector of the responses. In this case, we'll map `(juxt first last)` to
+each windowed sequence, such that each sequence returns a two-element vector. From there, we apply the same old
+filter, and count up the results.
+
+```clojure
+(defn solve [input window-size]
+  (->> (parse-measurements input)
+       (partition window-size 1)
+       (map (juxt first last))
+       (filter (partial apply <))
+       count))
+
+(defn part1 [input] (solve input 2))
+(defn part2 [input] (solve input 4))
+```
