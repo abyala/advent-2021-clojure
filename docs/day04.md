@@ -1,7 +1,7 @@
 # Day Four: Giant Squid
 
 * [Problem statement](https://adventofcode.com/2021/day/3)
-* [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day03.clj)
+* [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day04.clj)
 
 ---
 
