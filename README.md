@@ -6,3 +6,4 @@
 | 2     | [source](src/advent_2021_clojure/day02.clj) | [blog](docs/day02.md) |
 | 3     | [source](src/advent_2021_clojure/day03.clj) | [blog](docs/day03.md) |
 | 4     | [source](src/advent_2021_clojure/day04.clj) | [blog](docs/day04.md) |
+| 5     | [source](src/advent_2021_clojure/day05.clj) | [blog](docs/day05.md) |
