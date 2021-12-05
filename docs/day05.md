@@ -32,14 +32,29 @@ So I do a little extra work for the sake of potential reuse someday.
 
 The all new 2021 `point` namespace has a lot of the logic for the puzzle, and it's composed of four functions.
 
-First, `inclusive-distance` measures the total number of inclusive points between two points, assuming that they are
-either horizontal, vertical, or at a 45 degree angle. This lets us ignore slopes altogether, which is fine for this
-problem. I used `letfn` because I think it's a neat macro when we have ugly or monotonous code inside a function.
-So the inner function `local-dist` takes in two long values, and calculates the absolute value of their difference.
-I used the `^long` type annotation to avoid Java reflection, since Clojure can't tell which overloaded function I
-will have, and we can't use type hints for integers. With that in place, we keep the max distance between the two
-`x` and `y` values, and then increment the distance so the line includes both points. For horizontal or vertical lines,
-one distance should be 0; for diagonal lines, the two should be equal.
+First, let's take care of the easy functions,called `horizontal-line?` and `vertical-line?`. Both functions support
+two arities - the 1-arity being a vector of two points, and the 2-arity supporting two points. We'll see this again
+later, as it makes the functions flexible for different types of similar calls. Anyway, a horizontal line has the same
+values for `y1` and `y2`, and a vertical line has the same values for `x1` and `x2`.
+
+```clojure
+(defn horizontal-line?
+  ([[point1 point2]] (horizontal-line? point1 point2))
+  ([[_ y1] [_ y2]] (= y1 y2)))
+
+(defn vertical-line?
+  ([[point1 point2]] (vertical-line? point1 point2))
+  ([[x1 _] [x2 _]] (= x1 x2)))
+```
+
+The next function, `inclusive-distance` measures the total number of inclusive points between two points, assuming
+that they are either horizontal, vertical, or at a 45 degree angle. This lets us ignore slopes altogether, which is
+fine for this problem. I used `letfn` because I think it's a neat macro when we have ugly or monotonous code inside a
+function. So the inner function `local-dist` takes in two long values, and calculates the absolute value of their 
+difference. I used the `^long` type annotation to avoid Java reflection, since Clojure can't tell which overloaded
+function I will have, and we can't use type hints for integers. With that in place, we select which distance is greater
+(`x1` to `x2`, or `y1` to `y2`), and then increment the distance so the line includes both points. For horizontal or 
+vertical lines, one distance should be 0; for diagonal lines, the two should be equal.
 
 ```clojure
 (defn inclusive-distance [[x1 y1] [x2 y2]]
@@ -48,10 +63,14 @@ one distance should be 0; for diagonal lines, the two should be equal.
               (local-dist y1 y2)))))
 ```
 
+### inclusive-line-between
+
 The second function is `inclusive-line-between`, which returns all points between two points, inclusive. Here I
 support both the 1-arity form (`(inclusive-line-between [p1 p2])`) and the 2-arity form
 (`(inclusive-line-between p1 p2)`), as described in the preable. The first form just unpacks the value into the
-second.
+second. I implemented this twice and felt like showing both forms.
+
+#### Plus, minus, and range
 
 Now things get fun. I don't want complex logic to check if the points are in a convenient order, or if a diagonal
 line goes up-right or down-right, so instead I made another internal function called `ordinate-fn`. The idea is that
@@ -67,7 +86,6 @@ Then we just map the range of distances to create our sequence of `[x y]` vector
 distance, and calling `y-fn` on `y1` and the distance. This little ditty now gives us all inclusive points in any line!
 
 ```clojure
-
 (defn inclusive-line-between
   ([[point1 point2]]
    (inclusive-line-between point1 point2))
@@ -82,18 +100,41 @@ distance, and calling `y-fn` on `y1` and the distance. This little ditty now giv
        (map #(vector (x-fn x1 %) (y-fn y1 %)) (range distance))))))
 ```
 
-What's left are two simple functions, called `horizontal-line?` and `vertical-line?`, and both support the same
-1-arity and 2-arity versions that `inclusive-line-between` does. A horizontal line has the same values for `y1` and
-`y2`, and a vertical line has the same values for `x1` and `x2`.
+#### Iterate and take
+
+The solution above is neat, but it looks a little messy to me. That `:else` seems ugly, and the final line that maps
+the range to each point... it could be better. And while walking the dog this morning, I figured out how! I'll define
+a helper function called `infinite-points-from`, which returns an infinite sequence of points from point1, going
+through point2, and off to infinity. Then `inclusive-line-between` just has to pick off `inclusive-distance` number of
+points!
+
+The `infinite-points-from` function looks similar in structure to the original 2-arity `inclusive-line-between`
+function. We'll still use `letfn` to define `ordinate-fn`, but this time it will return the function to apply to the
+previous value of `x` or `y` in the line, rather than the function to apply to the original `x1` or `y1` and
+the "current" range. So instead of `+`, `-`, and `(fn [v _] v)`, we instead use `inc`, `dec`, and `identity`. That's
+cleaner already. Then we'll use our good friend `iterate` to create an infinite sequence of `x` values from `x1`,
+another of `y` values from `y1`, and then call `map vector` to zip the nth of each sequence into little vectors.
 
 ```clojure
-(defn horizontal-line?
-  ([[point1 point2]] (horizontal-line? point1 point2))
-  ([[_ y1] [_ y2]] (= y1 y2)))
+(defn infinite-points-from [[x1 y1] [x2 y2]]
+  (letfn [(ordinate-fn [v1 v2] (cond (< v1 v2) inc
+                                     (> v1 v2) dec
+                                     :else identity))]
+    (let [x-fn (ordinate-fn x1 x2)
+          y-fn (ordinate-fn y1 y2)]
+      (map vector (iterate x-fn x1) (iterate y-fn y1)))))
+```
 
-(defn vertical-line?
-  ([[point1 point2]] (vertical-line? point1 point2))
-  ([[x1 _] [x2 _]] (= x1 x2)))
+Now `inclusive-line-between` just calls `infinite-points-from` to get the sequence of points, and uses `take` to grab
+`inclusive-distance` numbers of points.
+
+```clojure
+(defn inclusive-line-between
+  ([[point1 point2]]
+   (inclusive-line-between point1 point2))
+
+  ([point1 point2]
+   (take (inclusive-distance point1 point2) (infinite-points-from point1 point2))))
 ```
 
 ## Part 1
