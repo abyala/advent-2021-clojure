@@ -2,7 +2,7 @@
 
 * [Problem statement](https://adventofcode.com/2021/day/3)
 * [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day04.clj)
-* [All-solo solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day04-all-solo.clj)
+* [All-solo solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day04_all_solo.clj)
 
 ---
 
