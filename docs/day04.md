@@ -2,6 +2,7 @@
 
 * [Problem statement](https://adventofcode.com/2021/day/3)
 * [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day04.clj)
+* [All-solo solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day04-all-solo.clj)
 
 ---
 
@@ -226,3 +227,47 @@ list. Other than the constructor and changing `final-score` to call `(first numb
 
 What's the lesson? Encapsulation is still important at times, but using open maps and properties doesn't need to be
 scary.
+
+---
+
+## Other Approaches
+
+My coworker [mtkuhn](https://github.com/mtkuhn) posted a different algorithm in his
+[Kotlin-based solution](https://github.com/mtkuhn/advent-of-code-2021/blob/master/doc/day4.md) to this problem. From
+his solution, I offer another way to solve the problem. Essentially, we let each board run through the numbers as solo
+games, recording both the number of turns required to finish and the final score. We sort these solutions in turn
+order.  For part 1, we pick the score of the first game (the one that finished first), and for part 2 we pick the score
+of the last game.
+
+I put the relevant code into a different namespace called `day04-all-solo` to keep the solutions distinct, but I
+reused almost everything from my solution.  The `solo-results` function takes in a game that's assumed to have a
+single board in it, and it again uses `day04/take-turn`. This time, though, instead of calling `(keep final-score)`,
+I used `keep-indexed` so we'd know which iteration of the game gave us the first winning score. My friend `when-let`
+binds the final score to `score` once it exists, and we return the first such value.
+
+The `solve-all` function is responsible for splitting the original game - the one with all of the boards - into
+multiple solo games by mapping each board to a game that only has the one board. This is simple to do with
+`(map #(assoc game :boards [%]) (:boards game))`, since we can just set the entire vector of `boards` to a
+single-elemtn vector. Then we map each game to `solo-results` and sort them in turn order using `(sort-by :turns)`.
+
+Finally, the revised `part1` and `part2` functions parse the game, call `solve-all`, take either the first or last
+such game result, and extract the score back out.
+
+```clojure
+(defn solo-results [game]
+  (->> (iterate day04/take-turn game)
+       (keep-indexed (fn [idx g] (when-let [score (day04/final-score g)]
+                                   {:turns idx :score score})))
+       first))
+
+(defn solve-all [game]
+  (let [solo-games (map #(assoc game :boards [%]) (:boards game))]
+    (->> solo-games
+         (map solo-results)
+         (sort-by :turns))))
+
+(defn part1 [input] (-> input day04/parse-game solve-all first :score))
+(defn part2 [input] (-> input day04/parse-game solve-all last :score))
+```
+
+Cool idea, Matt!
