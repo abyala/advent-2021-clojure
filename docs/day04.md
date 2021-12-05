@@ -21,10 +21,12 @@ rather, the difficulty is equivalent.  I'll explain why in the epilogue below.
 So yeah, we're going to play some bingo. Seems legit. Of course we're going to start with parsing, but first let's
 spend some time figuring out what we want to represent in data. I decided that I would represent a game as a map of
 three properties - `:numbers-to-draw` as a sequence of numbers we're ready to draw, `:numbers-drawn` as a sequence of
-the numbers we did draw, and `:boards` for the current state of the game board. To represent each board, I need to know
+the numbers we did draw, and `:boards` for the current state of each game board. To represent each board, I need to know
 two things - the set of coordinates that have been marked, and where to find the spaces we haven't marked yet.
-So rather than storing each cell in the board, with its coordinates, numeric value, and a flag for whether or not it's
-been seen yet, I went with something more deconstructed.  The final format of the game becomes this:
+Eventually, we can also declare that a board has achieved Bingo status too, but since `nil` and `false` are both
+falsey in Clojure, I don't record that value until it's true. So rather than storing each cell in the board, with its
+coordinates, numeric value, and a flag for whether or not it's been seen yet, I went with something more deconstructed.
+The final format of the game becomes this:
 
 ```clojure
 ; Structure of a game
@@ -45,8 +47,8 @@ the numbers to draw, so that's easy enough.
 ```
 
 Parsing the each board is a little more complex. A board is represented by a line of text for each row, where the line
-is a space-separated list of the numbers on the board. There should be five rows and 5 columns. To parse each line into
-five numbers, we will use `re-seq` to return the sequence of numeric strings within the line, and then parse each
+is a space-separated list of the numbers on the board. There should be five rows and five columns. To parse each line
+into five numbers, we use `re-seq` to return the sequence of numeric strings within the line, and then parse each
 number using `parse-int`. From there, we use doubly-nested `map-indexed` functions to derive the `x` and `y`
 coordinates, which we associate together into one giant map called `:unmarked`.
 
@@ -62,8 +64,8 @@ coordinates, which we associate together into one giant map called `:unmarked`.
 ```
 
 Now that we can parse the incoming numbers and the boards, we put them together using `parse-game`. In previous years,
-I created the `utils/split-blank-line` function to split a single strings into smaller strings when we see two
-consecutive blank lines, accommodating for Windows newline nonsense. And as with the day 3 puzzle, we use a variatic
+I created the `utils/split-blank-line` function to split a single string into smaller strings when we see two
+consecutive blank lines, accommodating for Windows' newline nonsense. And as with the day 3 puzzle, we use a variatic
 deconstruction by binding the results of `split-blank-line` using `[drawn & boards]`, which has the effect of binding
 the first string to `drawn` and the remaining strings into a sequence named `boards`.
 
@@ -78,7 +80,7 @@ the first string to `drawn` and the remaining strings into a sequence named `boa
 We're not quite ready to play the game yet. First, I want to make a few helper functions to make working with boards a
 little easier. The `coords-of` function takes in a number, and returns the `[x y]` coordinates of that number, if it's
 on the board. Then `unmarked-values` returns the sequence of numbers that have not yet been marked. They're both simple
-to look at, but will make the game logic later easier to read.
+to look at, but will make the game logic easier to read later.
 
 ```clojure
 (defn coords-of [board n] (get-in board [:unmarked n]))
@@ -86,7 +88,7 @@ to look at, but will make the game logic later easier to read.
 ```
 
 Now let's figure out how a board changes once we draw a number. If we can find the coordinates of that number in an
-unmarked cell, we'll need to move it from marked to unmarked, and then check to see if the board has won. This means
+unmarked cell, we'll need to move it from unmarked to marked, and then check to see if the board has won. This means
 using `conj` to add the number to the set of marked coordinates,`dissoc` to remove the mapping from that number to its
 coordinates, and then check for a bingo (TBD). If that number doesn't appear anywhere on the board, just return the
 board itself.
