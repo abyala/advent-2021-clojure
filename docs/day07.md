@@ -58,36 +58,37 @@ Onward!
 ## Part 2
 
 This part is pretty much the same as the first part, except that the cost of moving crabs increases according to the
-factorial function. Thank you to high school math for teaching me that `n! = (n * (n + 1)) / 2`, so I'll throw that
-into a `factorial` function in the `utils` namespace again.
+summation function. (Thank you to coworker Matt for reminding me that this was a summation and not a factorial!) And
+thank you to high school math for teaching me that `(summation n) = (n * (n + 1)) / 2`, so I'll throw that
+into a `summation` function in the `utils` namespace again.
 
 ```clojure
 ; advent-2021-clojure.utils namespace
-(defn factorial [n]
+(defn summation [n]
   (-> (* n (inc n))
       (/ 2)))
 ```
 
-So now we need to have a new calculation function, `factorial-distances-to`, which sums up the factorial distance from
+So now we need to have a new calculation function, `summation-distances-to`, which sums up the summation distance from
 each crab to a given position. Hmm... that looks awfully similar to the `distances-to` function. Is there a
 refactoring in our future?
 
 ```clojure
-(defn factorial-distances-to [crabs pos]
+(defn summation-distances-to [crabs pos]
   (->> crabs
-       (map #(factorial (utils/abs (- % pos))))
+       (map #(summation (utils/abs (- % pos))))
        (apply +)))
 ```
 
 Well we can write the `part2` function. And oh look - it's a copy-paste job from the `part1` function, except that
-we are calling `factorial-distances-to` instead of `distances-to`.
+we are calling `summation-distances-to` instead of `distances-to`.
 
 ```clojure
 (defn part2 [input]
   (let [crabs (parse-crabs input)
         [first-crab last-crab] (apply (juxt min max) crabs)]
     (->> (range first-crab (inc last-crab))
-         (map (partial factorial-distances-to crabs))
+         (map (partial summation-distances-to crabs))
          (apply min))))
 ```
 
@@ -98,11 +99,11 @@ we are calling `factorial-distances-to` instead of `distances-to`.
 Alright, I can begrudgingly accept one copy-paste job, but not two. So let's make this cleaner.
 
 The first approach we can take is having a `solve` function where we pass in either `distances-to` or
-`factorial-distances-to`.
+`summation-distances-to`.
 
 ```clojure
 (defn distances-to [crabs pos] ...)
-(defn factorial-distances-to [crabs pos] ...)
+(defn summation-distances-to [crabs pos] ...)
 
 (defn solve [f input]
   (let [crabs (parse-crabs input)
@@ -112,15 +113,15 @@ The first approach we can take is having a `solve` function where we pass in eit
          (apply min))))
   
 (defn part1 [input] (solve distances-to input))
-(defn part2 [input] (solve factorial-distances-to input))
+(defn part2 [input] (solve summation-distances-to input))
 ```
 
 That's a good start, since it combines shared logic between `part1` and `part2`, but we still have code duplication
-between `distances-to` and `factorial-distances-to`, so we aren't done yet. What we really want to do is make a
+between `distances-to` and `summation-distances-to`, so we aren't done yet. What we really want to do is make a
 common function called `total-crab-distances-to`, which will sum up the distances from every crab to a position,
 applying the input function `f` to each distance. For part 1, we don't need to mutate the distances in any way, so
-we'll pass in `identity`.  For part 2, we need the factorial value of the distance, so we'll pass in 
-`utils/factorial`. Then the `solve` function just needs to pass that function `f` through to `total-crab-distance-to`
+we'll pass in `identity`.  For part 2, we need the summation value of the distance, so we'll pass in 
+`utils/summation`. Then the `solve` function just needs to pass that function `f` through to `total-crab-distance-to`
 to get to the answer.
 
 ```clojure
@@ -137,5 +138,5 @@ to get to the answer.
          (apply min))))
 
 (defn part1 [input] (solve identity input))
-(defn part2 [input] (solve utils/factorial input))
+(defn part2 [input] (solve utils/summation input))
 ```

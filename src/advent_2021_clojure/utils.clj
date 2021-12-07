@@ -14,6 +14,6 @@
 
 (defn abs [^long n] (Math/abs n))
 
-(defn factorial [n]
+(defn summation [n]
   (-> (* n (inc n))
       (/ 2)))

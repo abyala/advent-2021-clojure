@@ -18,4 +18,4 @@
          (apply min))))
 
 (defn part1 [input] (solve identity input))
-(defn part2 [input] (solve utils/factorial input))
+(defn part2 [input] (solve utils/summation input))
