@@ -11,3 +11,9 @@
   [input]
   (-> (str/replace input "\r" "")
       (str/split #"\n\n")))
+
+(defn abs [^long n] (Math/abs n))
+
+(defn factorial [n]
+  (-> (* n (inc n))
+      (/ 2)))
