@@ -27,3 +27,6 @@
 (defn vertical-line?
   ([[point1 point2]] (vertical-line? point1 point2))
   ([[x1 _] [x2 _]] (= x1 x2)))
+
+(defn neighbors [point]
+  (map (partial mapv + point) [[0 1] [0 -1] [-1 0] [1 0]]))

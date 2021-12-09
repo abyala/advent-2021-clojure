@@ -17,3 +17,5 @@
 (defn summation [n]
   (-> (* n (inc n))
       (/ 2)))
+
+(defn char->int [c] (- (int c) 48))
