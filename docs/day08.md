@@ -154,3 +154,73 @@ in to `find-digits` with the `outputs`, and add together the results.  See?  Tha
                                          (find-digits outputs))))
        (apply +)))
 ```
+
+---
+
+## Alternative
+
+My Twitter friend [@JoePittsy](https://twitter.com/JoePittsy) posted an
+[absolutely brilliant solution](https://twitter.com/JoePittsy/status/1468598079569989636/photo/1) to part 2 in Python
+which, after I read it multiple times and understood the approach (I don't know Python), I just had to reproduce in
+Clojure and share with the world.
+
+He starts with the accepted observation that we can immediately determine the letters in the 1 and 4 signal patterns,
+because the 1 is the only pattern with two segments, and the 4 is the only pattern with four segments. Once you have
+those two patterns identified, _you don't need to identify the other patterns._
+
+Instead, we can go directly to the four output values, and extract three pieces of data - the length of the output,
+the number of overlapping segments with the 1, and the number of overlapping segments with the 4.  These three data
+elements will uniquely identify each number.  For example:
+
+* We know from my solution that there are three numbers that have six segments: 0, 6 and 9.
+* Zero has two overlaps with 1 (c and f), and three overlaps with 4 (b, c, and f).
+* Six has one overlap with 1 (f) and three overlaps with 4 (b, d, and f).
+* Nine has two overlaps with 1 (c and f), and four overlaps with 4 (b, c, d, and f).
+* Thus in a partial map of `{[count overlaps-with-one overlaps-with-four] digit}`, we would have at least
+`{[6 2 3] 0, [6 1 3] 6, [6 2 4] 9}`.
+
+Taking all ten digits, we create `digit-finder`:
+
+```clojure
+(def digit-finder {[6 2 3] 0
+                   [2 2 2] 1
+                   [5 1 2] 2
+                   [5 2 3] 3
+                   [4 2 4] 4
+                   [5 1 3] 5
+                   [6 1 3] 6
+                   [3 2 2] 7
+                   [7 2 4] 8
+                   [6 2 4] 9})
+```
+
+So given that we have out lookup table/map, we can create the function `digits`, which takes in the patterns and
+outputs, and returns the digits. First, we identify `one` and `four` by finding the distinct 2- and 4-character
+in the pattern segments. Then we create a function `digit-keys` using `juxt`, which applies the three functions we
+need to form the key of `digit-finder` - the length of the input, the number of segments intersecting `one`, and the
+number of segments intersecting `four`. The `(map (comp digit-finder digit-keys) outputs)` line converts each of the
+_outputs_ (not patterns) into the key we need, then looks it up in `digit-finder` to get the actual digit. Then
+finally we concatenate each digit into a string and parse it as an int to get the actual digit.
+
+```clojure
+(defn digits [patterns outputs]
+  (let [one (first (filter #(= 2 (count %)) patterns))
+        four (first (filter #(= 4 (count %)) patterns))
+        digit-keys (juxt count
+                         (comp count (partial set/intersection one))
+                         (comp count (partial set/intersection four)))]
+    (->> outputs
+         (map (comp digit-finder digit-keys))
+         (apply str)
+         parse-int)))
+```
+
+Finally, the revised `part2` function is really simple - parse the input, call `digits` on each line, and add up the
+digits.  Well done, [@JoePittsy](https://twitter.com/JoePittsy)! 
+
+```clojure
+(defn part2 [input]
+  (->> (parse-input input)
+       (map (partial apply digits))
+       (apply +)))
+```
