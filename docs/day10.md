@@ -164,3 +164,49 @@ bounties and return the one in the middle.
        sort
        middle))
 ```
+
+---
+
+## Alternative: process-line using reduce
+
+I've mentioned before how I'm looking to replace `loop-recur` with `reduce`, in the hope that we end up with a simpler
+expression that doesn't look like iteration. We can update `process-line` like this if we want, although I'm not sure
+it looks better.
+
+What makes it ugly is that we know going in that every line is going to either be incomplete or corrupt. It's
+incomplete if we run out of letters and we haven't reached a corrupt character yet. So without making a `let` binding
+to check if the final state was corrupt or not, that means we need to assume the entire time we reduce the data that
+it's incomplete, until or unless we get proof of a corrupt input.
+
+So what does that look like? We initialize the `reduce` function with `[:incomplete ()]`, where the list is our stack,
+and reduces over the string `line`, which means character-by-character.  The reducing function takes in two arguments,
+the accumulation and the next value. Note that we can do another fantastic destructuring of the accumulator into
+`[_ [s] :as acc]`, because we don't care about the `:incomplete` status, and we only care about the top of the stack.
+We'll call `update` on the accumulator to work on the stack as the second element (index=1), calling `conj` to push
+and `rest` to pop. Finally, when we hit a corrupt character, we use the `reduced` function to short-circuit any 
+additional computation.
+
+I'll put the two solutions together so you can decide for yourself which looks prettier to you.
+
+```clojure
+; Original solution with loop-recur
+(defn process-line [line]
+  (loop [[c & xc] line, [s & xs :as stack] ()]
+    (if c
+      (cond (delimiters c) (recur xc (conj stack (close-delimiters c))) ;push
+            (= c s)        (recur xc xs)                                ; pop
+            :else          [:corrupt c])
+      [:incomplete stack])))
+
+; Revised version with reduce
+(defn process-line [line]
+  (reduce (fn [[_ [s] :as acc] c]
+            (cond (delimiters c) (update acc 1 conj (close-delimiters c))
+                  (= c s)        (update acc 1 rest)
+                  :else          (reduced [:corrupt c])))
+          [:incomplete ()]
+          line))
+```
+
+Now that I look at them next to each other, maybe the reduction version is prettier after all!  I reserve the right to
+change this document later if the mood hits!
