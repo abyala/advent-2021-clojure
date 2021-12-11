@@ -12,3 +12,4 @@
 | 8     | [source](src/advent_2021_clojure/day08.clj) | [blog](docs/day08.md) |
 | 9     | [source](src/advent_2021_clojure/day09.clj) | [blog](docs/day09.md) |
 | 10     | [source](src/advent_2021_clojure/day10.clj) | [blog](docs/day10.md) |
+| 11     | [source](src/advent_2021_clojure/day11.clj) | [blog](docs/day11.md) |

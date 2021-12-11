@@ -1,4 +1,13 @@
-(ns advent-2021-clojure.point)
+(ns advent-2021-clojure.point
+  (:require [clojure.string :as str]))
+
+(defn parse-to-char-coords
+  "Given an input string, returns a lazy sequence of [[x y] c] tuples of [x y] coords to each character c."
+  [input]
+  (->> (str/split-lines input)
+       (map-indexed (fn [y line]
+                      (map-indexed (fn [x c] [[x y] c]) line)))
+       (apply concat)))
 
 (defn inclusive-distance [[x1 y1] [x2 y2]]
   (letfn [(local-dist [^long v1 ^long v2] (Math/abs (- v1 v2)))]
@@ -30,3 +39,6 @@
 
 (defn neighbors [point]
   (map (partial mapv + point) [[0 1] [0 -1] [-1 0] [1 0]]))
+
+(defn surrounding [point]
+  (map (partial mapv + point) [[-1 -1] [-1 0] [-1 1] [0 -1] [0 1] [1 -1] [1 0] [1 1]]))
