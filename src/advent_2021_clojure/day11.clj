@@ -1,7 +1,7 @@
 (ns advent-2021-clojure.day11
   (:require
     [advent-2021-clojure.point :as point]
-    [advent-2021-clojure.utils :as utils :refer [parse-int]]))
+    [advent-2021-clojure.utils :as utils]))
 
 (defn parse-grid [input]
   (->> (point/parse-to-char-coords input)
@@ -10,8 +10,7 @@
 (defn flashes? [v] (> v 9))
 
 (defn flashing-coordinates [grid]
-  (->> (filter #(flashes? (second %)) grid)
-       keys))
+  (keep (fn [[k v]] (when (flashes? v) k)) grid))
 
 (defn increment-all [grid] (utils/update-values grid inc))
 

@@ -53,9 +53,8 @@ level of octopuses, returning the coordinates of those who are flashing.
 ```clojure
 (defn flashes? [v] (> v 9))
 
-(defn flashing-coordinates [grid]
-  (->> (filter #(flashes? (second %)) grid)
-       keys))
+(defn flashing-coordinates [grid] 
+  (keep (fn [[k v]] (when (flashes? v) k)) grid))
 ```
 
 Now I've said many times in these write-ups that part of what I love about both Clojure and functional programming is
