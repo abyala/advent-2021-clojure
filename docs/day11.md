@@ -16,6 +16,17 @@ One other thing - according to both [this Grammarly article](https://www.grammar
 plural form for "octopus" can be both "octopuses" or "octopi," neither is exclusively correct and the former is more
 English-sounding. So Twitter commenters can all relax now; they're both fine. Swim along, please.
 
+---
+
+## Second Preamble
+
+I completed this puzzle and finished my write-up, and then I went to sleep. In the morning, I realized I had made it
+far too complicated, so I've simplified it here. Rather than keep multiple copies of both the code and the write-up,
+I'm just replacing the write-up. If you really want to read my original implementation (why would you?), check out the
+Git history.
+
+---
+
 ## Part 1
 
 Today, as our submarine travels through the underground cave, we find 100 conveniently aligned dumbo octopuses whose
@@ -46,45 +57,29 @@ sequence into a map, converting each character into an int, using the `char->int
        (reduce (fn [acc [p c]] (assoc acc p (utils/char->int c))) {})))
 ```
 
-Next, I'm going to create two helper functions called `flashes?` and `flash-keys`. Since an octopus flashes if its
-energy level exceeds a value of 9, the `flashes?` function handles that logic. Then `flash-keys` examines the energy
-level of octopuses, returning the coordinates of those who are flashing.
+Next, I'm going to create a few helper functions so we don't have to keep thinking about the actual energy levels
+throughout the code. `ready-to-flash?` states whether the octopus has an energy level above 9, meaning it is about to
+flash. `flashed?` returns whether the octopus just flashed, which means its current energy level is 0. Then
+`coordinates-ready-to-flash` and `coordinates-flashed` returns which octopuses are either ready to flash or just did
+flash.
 
 ```clojure
-(defn flashes? [v] (> v 9))
+(defn ready-to-flash? [v] (> v 9))
+(def flashed? zero?)
 
-(defn flashing-coordinates [grid] 
-  (keep (fn [[k v]] (when (flashes? v) k)) grid))
+(defn- coordinates-where [f grid] (keep (fn [[k v]] (when (f v) k)) grid))
+(defn coordinates-ready-to-flash [grid] (coordinates-where ready-to-flash? grid))
+(defn coordinates-flashed [grid] (coordinates-where flashed? grid))
 ```
 
-Now I've said many times in these write-ups that part of what I love about both Clojure and functional programming is
-the clarity you can from putting together lots of little functions. I will gladly take a few extra lines to introduce
-"business-sounding" functions for clarity, even if it makes my code more verbose.  Therefore, I'll make a few smaller
-functions, and one larger one, so the code is easier to understand.
+On every step/turn of the program, we'll need to increment every octopus's energy level, and then check for flashes.
+If an octopus flashes, it sets its energy level to 0 and causes all of its surrounding neighbors to increment their
+energy levels if they hadn't flashed yet. Finally, any of those neighbors check to see if they're ready to flash too.
 
-First, we'll scroll down a bit in my solution to the `take-turn` function. Eventually, I'm going to want to call this
-function and have it return the next state of the grid and the number of nodes that flashed. For reasons I'll explain
-later, this function will take in an argument of the same type it will return - `[grid num-flashed]`. Let's walk
-through what the steps are:
-1. Given the current grid state, increment all values.
-2. Any octopus wwith an energy level greater than 10 will flash, causing its cardinal and intercardinal neighbors to
-increment their energy levels too, potentially causing them to flash as well.
-3. Once they have all finished flashing, reset any flashed octopuses to an energy state of zero.
-4. Count the number of octopuses with a current energy level of 0, since those must be the ones that just flashed.
-
-```clojure
-(defn take-turn [[grid _]]
-  (let [grid' (-> grid increment-all cascade-flashes reset-flashes)
-        num-flashed (->> grid' (map second) (filter zero?) count)]
-    [grid' num-flashed]))
-```
-
-Note that this function makes use of three helper functions that we need to implement: `increment-all`,
-`cascade-flashes`, and `reset-flashes`. Let's pick those up one at a time.
-
-`increment-all` is a very simple function, but we're going to leverage a utility function I found online a while ago,
-called `update-values`, which appliles a function `f` to the value of every key in a map. In this case, we just call
-`inc`. I'll include the text of `update-values` here since it's the first time we're using it this year.
+First, let's take care of the easy part - incrementing every octopus's energy level.  `increment-all` is a very simple
+function, but we're going to leverage a utility function I found online a while ago, called `update-values`, which
+applies a function `f` to the value of every key in a map. In this case, we just call `inc`. I'll include the text of
+`update-values` here since it's the first time we're using it this year.
 
 ```clojure
 (defn update-values
@@ -97,26 +92,25 @@ called `update-values`, which appliles a function `f` to the value of every key 
 (defn increment-all [grid] (utils/update-values grid inc))
 ```
 
-The `cascade-flashes` function is a little more involved, as it is both multi-arity and recursive. My approach is to
-take in the initial grid and a set of points that have already flashed this time around, defaulting to an empty set.
-If therae is any coordinate that is currently flashing and which we haven't seen already, then follow the steps shown
-above. We'll use `if-some` to detect if there is any such point, leveraging `flashing-coordinates` from above. If we
-find such a point, we'll call `(point/surrounding p)` to get all eight of its surrounding neighbors, and then use
-`(filter grid points)` to ensure that those neighbors are within bounds. With that list of valid neighbors, we'll
-use `reduce` on the entire grid, incrementing every matching coordinate; note how clean and succinct
-`(reduce #(update %1 %2 inc) grid points)` is here. Finally, we'll add the point `p` to the set of `flashed` values.
-If there are no more flashing coordinates, just return the new state of the grid.
+The `cascade-flashes` function is a little more involved since it is recursive. To start, we'll check to see if there
+are any points ready to flash. For that, we can get the (lazy) sequence of coordinates ready to flash, and pick the
+first one off; if there are none, this will return `nil`. If we find such a point, we'll map it to its surrounding
+points, and filter for only those coordinates that are on the grid; this takes care of boundary conditions. Next,
+we'll remove any points that correspond to octopuses that have already flashed, since after incrementing every octopus,
+only those that just flashed will have an energy level of 0. Note that `(remove (comp flashed? grid) points)` uses the
+`comp` function because I think it looks cleaner than `(remove #(flashed? (grid %)) points)`. Finally, we need to
+increment those neighbors and reset the current octopus to zero, and we do that with a `reduce` call. The
+initialization value in this case isn't the `grid`, but rather `(assoc grid p 0)` so the chosen octopus goes down to
+an energy level of 0.
 
 ```clojure
-(defn cascade-flashes
-  ([grid] (cascade-flashes grid #{}))
-  ([grid flashed] (if-some [p (->> grid flashing-coordinates (remove flashed) first)]
-                    (recur (->> (point/surrounding p)
-                                (filter grid)
-                                (reduce #(update %1 %2 inc) grid)
-                                (merge grid))
-                           (conj flashed p))
-                    grid)))
+(defn cascade-flashes [grid]
+  (if-some [p (->> grid coordinates-ready-to-flash first)]
+    (recur (->> (point/surrounding p)
+                (filter grid)
+                (remove (comp flashed? grid))
+                (reduce #(update %1 %2 inc) (assoc grid p 0))))
+    grid))
 ```
 
 One thing that might look a little odd in that function is that we are using `recur` without first using `loop`. The
@@ -124,30 +118,24 @@ One thing that might look a little odd in that function is that we are using `re
 can emulate tail call optimization even though Java doesn't actually support it. Clojure supports two recursion points -
 functions (`fn` or `defn`) and `loop`s. Here we're making the whole `cascade-flashes` function recursive.
 
-Finally, we get to the `reset-flashes`, updating the grid values for all flashing coordinates to 0. I originally
-implemented this reusing the `update-values` function, but that seemed a bit wasteful for every coordinate that _isn't_
-flashing. I'm putting both implementations here, but I think the latter is easy enough to understand and saves a few
-clock cycles.
+So now we can implement the very simple `take-turn` function. Given a grid, it will increment all of the energy levels
+and cascade all of the flashes, returning the new grid.
 
 ```clojure
-; Solution using update-values on all values in the map.
-(defn reset-flashes [grid]
-  (utils/update-values grid #(if (flashes? %) 0 %)))
-
-; Solution using a simple reduce on only the flashing coordinates - more efficient.
-(defn reset-flashes [grid]
-  (reduce #(assoc %1 %2 0) grid (flashing-coordinates grid)))
+(defn take-turn [grid] (-> grid increment-all cascade-flashes))
 ```
 
 Ok, so now that `take-turn` is fully functional, I am going to create a function `octopus-flash-seq` that takes in an
-input string, and returns a sequence of the number of octopuses that flashed with each generation, starting with the
-original generation. We'll use `(iterate take-turn [(parse-grid input) 0])` to generate the sequence of
-`[grid num-flashed]`, mapping the number of flashes out of the second element in each vector.
+input string, and returns a sequence of states of the grid, starting with the original generation. We'll use
+`(iterate take-turn grid)` to generate the sequence of grids, which we will then map to the number of coordinates
+that had just flashed. Again, `(map (comp count coordinates-flashed))` looks simpler than
+`(map #(count (coordinates-flashed %)))`.
 
 ```clojure
 (defn octopus-flash-seq [input]
-  (->> (iterate take-turn [(parse-grid input) 0])
-       (map second)))
+  (->> (parse-grid input)
+       (iterate take-turn)
+       (map (comp count coordinates-flashed))))
 ```
 
 Finally, we can write part 1! We want to add together the number of flashes for the first 100 generations, which means

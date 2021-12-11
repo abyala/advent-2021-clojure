@@ -7,33 +7,29 @@
   (->> (point/parse-to-char-coords input)
        (reduce (fn [acc [p c]] (assoc acc p (utils/char->int c))) {})))
 
-(defn flashes? [v] (> v 9))
+(defn ready-to-flash? [v] (> v 9))
+(def flashed? zero?)
 
-(defn flashing-coordinates [grid]
-  (keep (fn [[k v]] (when (flashes? v) k)) grid))
+(defn- coordinates-where [f grid] (keep (fn [[k v]] (when (f v) k)) grid))
+(defn coordinates-ready-to-flash [grid] (coordinates-where ready-to-flash? grid))
+(defn coordinates-flashed [grid] (coordinates-where flashed? grid))
 
 (defn increment-all [grid] (utils/update-values grid inc))
 
-(defn cascade-flashes
-  ([grid] (cascade-flashes grid #{}))
-  ([grid flashed] (if-some [p (->> grid flashing-coordinates (remove flashed) first)]
-                    (recur (->> (point/surrounding p)
-                                (filter grid)
-                                (reduce #(update %1 %2 inc) grid))
-                           (conj flashed p))
-                    grid)))
+(defn cascade-flashes [grid]
+  (if-some [p (->> grid coordinates-ready-to-flash first)]
+    (recur (->> (point/surrounding p)
+                (filter grid)
+                (remove (comp flashed? grid))
+                (reduce #(update %1 %2 inc) (assoc grid p 0))))
+    grid))
 
-(defn reset-flashes [grid]
-  (reduce #(assoc %1 %2 0) grid (flashing-coordinates grid)))
-
-(defn take-turn [[grid _]]
-  (let [grid' (-> grid increment-all cascade-flashes reset-flashes)
-        num-flashed (->> grid' (map second) (filter zero?) count)]
-    [grid' num-flashed]))
+(defn take-turn [grid] (-> grid increment-all cascade-flashes))
 
 (defn octopus-flash-seq [input]
-  (->> (iterate take-turn [(parse-grid input) 0])
-       (map second)))
+  (->> (parse-grid input)
+       (iterate take-turn)
+       (map (comp count coordinates-flashed))))
 
 (defn part1 [input]
   (->> (octopus-flash-seq input)
