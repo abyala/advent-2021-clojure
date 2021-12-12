@@ -26,3 +26,6 @@
   http://blog.jayfields.com/2011/08/clojure-apply-function-to-each-value-of.html"
   [m f & args]
   (reduce (fn [r [k v]] (assoc r k (apply f v args))) {} m))
+
+(defn lower-case? [s] (every? #(Character/isLowerCase ^char %) s))
+(defn upper-case? [s] (every? #(Character/isUpperCase ^char %) s))
