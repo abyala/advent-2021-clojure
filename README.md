@@ -15,3 +15,4 @@
 | 11     | [source](src/advent_2021_clojure/day11.clj) | [blog](docs/day11.md) |
 | 12     | [source](src/advent_2021_clojure/day12.clj) | [blog](docs/day12.md) |
 | 13     | [source](src/advent_2021_clojure/day13.clj) | [blog](docs/day13.md) |
+| 14     | [source](src/advent_2021_clojure/day14.clj) | [blog](docs/day14.md) |
