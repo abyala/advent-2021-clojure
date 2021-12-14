@@ -1,6 +1,5 @@
 (ns advent-2021-clojure.day14
-  (:require
-    [advent-2021-clojure.utils :as u :refer [parse-int]]))
+  (:require [advent-2021-clojure.utils :as u]))
 
 (defn parse-input [input]
   (let [[template rules] (u/split-blank-line input)]
