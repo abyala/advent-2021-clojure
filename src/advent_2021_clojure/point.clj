@@ -1,6 +1,8 @@
 (ns advent-2021-clojure.point
   (:require [clojure.string :as str]))
 
+(def origin [0 0])
+
 (defn parse-to-char-coords
   "Given an input string, returns a lazy sequence of [[x y] c] tuples of [x y] coords to each character c."
   [input]

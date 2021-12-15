@@ -1,7 +1,10 @@
 (ns advent-2021-clojure.utils
   (:require [clojure.string :as str]))
 
-(defn parse-int [s] (Integer/parseInt s))
+(defn parse-int [v] (if (char? v)
+                      (Character/digit ^char v 10)
+                      (Integer/parseInt v)))
+
 (defn parse-binary [s] (Integer/parseInt s 2))
 
 (defn split-blank-line
