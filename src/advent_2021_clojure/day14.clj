@@ -16,9 +16,9 @@
           {} freqs))
 
 (defn score [initial-template freqs]
-  (let [char-freqs (update (reduce (fn [acc [[a] n]] (update-add acc a n))
-                                         {} freqs)
-                                 (last initial-template) inc)
+  (let [char-freqs (reduce (fn [acc [[a] n]] (update-add acc a n))
+                           {(last initial-template) 1}
+                           freqs)
         sorted-instances (sort-by - (vals char-freqs))]
     (apply - ((juxt first last) sorted-instances))))
 
