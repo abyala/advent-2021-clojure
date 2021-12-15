@@ -2,6 +2,7 @@
 
 * [Problem statement](https://adventofcode.com/2021/day/15)
 * [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day15.clj)
+* [Sorted Value Map code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/sorted_value_map.clj)
 
 ---
 
