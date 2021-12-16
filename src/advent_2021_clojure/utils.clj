@@ -6,6 +6,7 @@
                       (Integer/parseInt v)))
 
 (defn parse-binary [s] (Integer/parseInt s 2))
+(defn binary-to-decimal [s] (Long/parseLong s 2))
 
 (defn split-blank-line
   "Given an input string, returns a sequence of sub-strings, separated by a completely

@@ -17,3 +17,4 @@
 | 13     | [source](src/advent_2021_clojure/day13.clj) | [blog](docs/day13.md) |
 | 14     | [source](src/advent_2021_clojure/day14.clj) | [blog](docs/day14.md) |
 | 15     | [source](src/advent_2021_clojure/day15.clj) | [blog](docs/day15.md) |
+| 16     | [source](src/advent_2021_clojure/day16.clj) | [blog](docs/day16.md) |
