@@ -1,4 +1,4 @@
-# Day Sixteen: Packet Decoder
+# Day Seventeen: Trick Shot
 
 * [Problem statement](https://adventofcode.com/2021/day/17)
 * [Solution code](https://github.com/abyala/advent-2021-clojure/blob/master/src/advent_2021_clojure/day17.clj)
