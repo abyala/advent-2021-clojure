@@ -42,5 +42,12 @@
 (defn neighbors [point]
   (map (partial mapv + point) [[0 1] [0 -1] [-1 0] [1 0]]))
 
-(defn surrounding [point]
-  (map (partial mapv + point) [[-1 -1] [-1 0] [-1 1] [0 -1] [0 1] [1 -1] [1 0] [1 1]]))
+(defn surrounding
+  ([point] (surrounding false point))
+  ([include-self? point] (let [points (if include-self? [[-1 -1] [0 -1] [1 -1] [-1 0] [0 0] [1 0] [-1 1] [0 1] [1 1]]
+                                                        [[-1 -1] [-1 0] [-1 1] [0 -1] [0 1] [1 -1] [1 0] [1 1]])]
+                           (map (partial mapv + point) points))))
+
+(defn perimeter-points [[x0 y0] [x1 y1]]
+  (concat (for [x [x0 x1], y (range y0 (inc y1))] [x y])
+          (for [y [y0 y1], x (range (inc x0) x1)] [x y])))

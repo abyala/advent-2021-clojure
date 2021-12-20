@@ -20,3 +20,4 @@
 | 16     | [source](src/advent_2021_clojure/day16.clj) | [blog](docs/day16.md) |
 | 17     | [source](src/advent_2021_clojure/day17.clj) | [blog](docs/day17.md) |
 | 18     | [source](src/advent_2021_clojure/day18.clj) | [blog](docs/day18.md) |
+| 20     | [source](src/advent_2021_clojure/day20.clj) | [blog](docs/day20.md) |
