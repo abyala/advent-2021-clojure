@@ -50,7 +50,7 @@ For what it's worth, in the sample problem, `(get alg 0)` is zero, so the border
 ```clojure
 (defn border-seq [alg]
   (let [block-of {dark-pixel 0, light-pixel 511}]
-    (iterate #(-> % block-of alg) 0)))
+    (iterate (comp alg block-of) dark-pixel)))
 ```
 
 Now we can create a `migrate-image` function, which takes in the algorithm, the value of all border coordinates, and 

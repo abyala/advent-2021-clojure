@@ -16,7 +16,7 @@
 
 (defn border-seq [alg]
   (let [block-of {dark-pixel 0, light-pixel 511}]
-    (iterate #(-> % block-of alg) 0)))
+    (iterate (comp alg block-of) dark-pixel)))
 
 (defn next-value-at [alg border image coords]
   (->> (point/surrounding true coords)
