@@ -33,3 +33,5 @@
 
 (defn lower-case? [s] (every? #(Character/isLowerCase ^char %) s))
 (defn upper-case? [s] (every? #(Character/isUpperCase ^char %) s))
+
+(defn update-add [m k v] (update m k #(+ (or % 0) v)))
