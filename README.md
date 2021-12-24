@@ -23,3 +23,4 @@
 | 20     | [source](src/advent_2021_clojure/day20.clj) | [blog](docs/day20.md) |
 | 21     | [source](src/advent_2021_clojure/day21.clj) | [blog](docs/day21.md) |
 | 22     | [source](src/advent_2021_clojure/day22.clj) | [blog](docs/day22.md) |
+| 23     | [source](src/advent_2021_clojure/day23.clj) | [blog](docs/day23.md) |
