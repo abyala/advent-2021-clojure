@@ -20,6 +20,7 @@
 | 16     | [source](src/advent_2021_clojure/day16.clj) | [blog](docs/day16.md) |
 | 17     | [source](src/advent_2021_clojure/day17.clj) | [blog](docs/day17.md) |
 | 18     | [source](src/advent_2021_clojure/day18.clj) | [blog](docs/day18.md) |
+| 19     | [source](src/advent_2021_clojure/day19.clj) | [blog](docs/day19.md) |
 | 20     | [source](src/advent_2021_clojure/day20.clj) | [blog](docs/day20.md) |
 | 21     | [source](src/advent_2021_clojure/day21.clj) | [blog](docs/day21.md) |
 | 22     | [source](src/advent_2021_clojure/day22.clj) | [blog](docs/day22.md) |
