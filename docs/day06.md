@@ -60,7 +60,7 @@ _add_ the fish values to the map instead of just setting them? It's because the 
 a timer of 6 is the sum of the previous generation's fish with timers of 0 and 7.
 
 One terrific function I want to show off here is `reduce-kv`, which is another form of `reduce`. Both take in
-3 arguments - a reducing function, an initial value (this is actually optional for `reduce), and the collection to
+3 arguments - a reducing function, an initial value (this is actually optional for `reduce`), and the collection to
 reduce over. However, while `reduce` has a 2-arity function of `[accumulator value]`, `reduce-kv` requires the
 collection to be associative, and thus its reducing function is `3-arity` or form `[accumulator key value]`. This is
 effectively the same as using `(reduce (fn [accumulator [key value]] ...))`, but it's clearer to see what's going on
